@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minesweeper</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f0f0f0;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            color: #333;
+            margin: 0.5em 0;
+        }
+
+        table {
+            border-collapse: collapse;
+            margin: 0 auto;
+        }
+
+        td {
+            width: 30px;
+            height: 30px;
+            border: 1px solid #ccc;
+            text-align: center;
+            vertical-align: middle;
+            font-size: 1em;
+        }
+
+        td.covered {
+            background-color: #ddd;
+        }
+
+        td.flag {
+            background-color: #ffbdbd;
+        }
+
+        td.bomb {
+            background-color: #f00;
+        }
+    </style>
+</head>
+<body>
+    <h1>Minesweeper</h1>
+    <label for="boardSize">Board Size:</label>
+    <input type="number" id="boardSize" value="10"><br><br>
+    <label for="numBombs">Number of Bombs:</label>
+    <input type="number" id="numBombs" value="15"><br><br>
+    <label for="numFlags">Number of Flags:</label>
+    <input type="number" id="numFlags" value="5"><br><br>
+    <button onclick="startGame()">Start Game</button>
+    <div id="board"></div>
+    <script>
+        let boardSizeInput = document.getElementById('boardSize');
+        let numBombsInput = document.getElementById('numBombs');
+        let numFlagsInput = document.getElementById('numFlags');
+        let board = document.getElementById('board');
+        let cells = [];
+        let boardSize, numBombs, numFlags;
+
+        function startGame() {
+            boardSize = parseInt(boardSizeInput.value);
+            numBombs = parseInt(numBombsInput.value);
+            numFlags = parseInt(numFlagsInput.value);
+            createBoard();
+            generateBombs();
+        }
+
+        function createBoard() {
+            board.innerHTML = '';
+            const table = document.createElement('table');
+            for (let i = 0; i < boardSize; i++) {
+                const tr = document.createElement('tr');
+                for (let j = 0; j < boardSize; j++) {
+                    const td = document.createElement('td');
+                    td.dataset.x = i;
+                    td.dataset.y = j;
+                    td.addEventListener('click', revealCell);
+                    tr.appendChild(td);
+                }
+                table.appendChild(tr);
+            }
+            board.appendChild(table);
+        }
+
+        function revealCell() {
+            const x = parseInt(this.dataset.x);
+            const y = parseInt(this.dataset.y);
+
+            if (cells[x][y].bomb) {
+                this.classList.add('bomb');
+                alert('Game over!');
+                return;
+            }
+
+            this.classList.remove('covered');
+            this.textContent = cells[x][y].adjacentBombs;
+        }
+
+        function generateBombs() {
+            cells = [];
+            for (let i = 0; i < boardSize; i++) {
+                cells[i] = [];
+                for (let j = 0; j < boardSize; j++) {
+                    cells[i][j] = {
+                        bomb: false,
+                        adjacentBombs: 0
+                    };
+                }
+            }
+
+            while (numBombs > 0) {
+                const x = Math.floor(Math.random() * boardSize);
+                const y = Math.floor(Math.random() * boardSize);
+
+                if (!cells[x][y].bomb) {
+                    cells[x][y].bomb = true;
+                    numBombs--;
+                }
+            }
+
+            for (let i = 0; i < boardSize; i++) {
+                for (let j = 0; j < boardSize; j++) {
+                    if (!cells[i][j].bomb) {
+                        for (let dx = -1; dx <= 1; dx++) {
+                            for (let dy = -1; dy <= 1; dy++) {
+                                const nx = i + dx;
+                                const ny = j + dy;
+
+                                if (nx >= 0 && nx < boardSize && ny >= 0 && ny < boardSize && cells[nx][ny].bomb) {
+                                    cells[i][j].adjacentBombs++;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>
